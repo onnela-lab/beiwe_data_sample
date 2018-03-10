@@ -9,19 +9,33 @@
 library(tidyverse)
 library(foreach)
 
-## Constants
-##  Beiwe assigns 8 random alphanumeric characters to each user at sign up
-N_USERS  <-  5
-set.seed(0)
-USER_IDS <- replicate(N_USERS, paste(sample(c(0:9, letters), 8),collapse = ""))
-BASE_DIR <- "./data"
-ORIG_DIR <- "./original_data"
-NUM_OBS  <- 50
+## Config
+cfig     <- config::get()
+n_users  <- cfig$n_users
+base_dir <- cfig$split_data
+orig_dir <- cfig$original_data
+min_obs  <- cfig$min_obs
+
+## Study dataframe -- for every study, we want (1) the location of the 
+## original files, (2) seeds to generate fake user IDs, (3) resulting 
+## reproducible list of random fake user IDs
+study_df  <- data_frame(study_path = list.dirs('./original_data/', 
+                                               recursive = FALSE)) %>% 
+    mutate(study_seed = as.numeric(gsub("[^0-9]", "", x = study_path)), 
+           user_ids = NA)
+
+for (i in 1:nrow(study_df)) {
+    set.seed(study_df$study_seed[i])
+    study_df$user_ids[i] <- list(replicate(n_users, 
+                                      paste(sample(c(0:9, letters), 8), 
+                                            collapse = "")))
+}
+
 
 ## Helper -- foreach requires a wrapper function
-divide_csv_file <- function(i, all_files) {
+divide_csv_file <- function(i, study_files) {
     ## Extract current file string for later
-    curr_file <- all_files[i]
+    curr_file <- study_files[i]
     print(curr_file)
     
     ## Set a seed, import data, randomly assign users

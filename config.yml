@@ -1,0 +1,7 @@
+# Config file for the beiwe_data_sample project. 
+
+default:
+    original_data: './original_data'    ## Location of the original data
+    split_data: './data'                ## Location of new (split) data
+    n_users: 5                          ## How many users to split into
+    min_obs: 50                         ## Min observations for a split file
